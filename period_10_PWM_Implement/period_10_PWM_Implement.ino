@@ -7,11 +7,11 @@ void setup(){
 
 void loop(){
   int i;
-  int period = set_period(1);
-  for(i=1; i<=50; i+=1){
+  int period = set_period(10);
+  for(i=1; i<=100; i+=1){
     set_duty(period, i);
   }
-  for(i=49; i>=0; i-=1){
+  for(i=99; i>=0; i-=1){
     set_duty(period, i);
   }
 }

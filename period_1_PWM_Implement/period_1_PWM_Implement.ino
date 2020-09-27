@@ -7,7 +7,7 @@ void setup(){
 
 void loop(){
   int i;
-  int period = set_period(0.1);
+  int period = set_period(1);
   for(i=1; i<=50; i+=1){
     set_duty(period, i);
   }
@@ -16,7 +16,7 @@ void loop(){
   }
 }
 
-int set_period(float period){
+int set_period(int period){
   return period*1000;
 }
 
