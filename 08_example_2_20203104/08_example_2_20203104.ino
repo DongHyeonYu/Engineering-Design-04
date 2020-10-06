@@ -59,7 +59,14 @@ void loop() {
 
 // turn on the LED if the distance is between dist_min and dist_max
   if(dist_raw < dist_min || dist_raw > dist_max) {
-    analogWrite(PIN_LED,1);
+    if ((201<=dist_raw) && (dist_raw<=300)){
+      PWM = 255 - 2.55*abs(300-dist_raw);
+      analogWrite(PIN_LED, int(PWM) );
+    }
+    else if (100<=dist_raw && dist_raw <= 200){
+      PWM = 2.55 * abs(200 - dist_raw);
+      analogWrite(PIN_LED, int(PWM));
+    }
   }
 
   else {
