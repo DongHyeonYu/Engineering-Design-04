@@ -50,7 +50,7 @@ void loop() {
   dist_raw = USS_measure(PIN_TRIG, PIN_ECHO);
   if (count == len_arr) count = 0;
   else if (count == len_arr / 2) {
-    median = arr[len_arr / 2];
+    median = (arr[14]+arr[15])/2;
   }
 
 

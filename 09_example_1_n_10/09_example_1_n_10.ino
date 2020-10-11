@@ -49,7 +49,7 @@ void loop() {
 // get a distance reading from the USS
   dist_raw = USS_measure(PIN_TRIG,PIN_ECHO);
   if (count == len_arr){
-    median = arr[len_arr/2];
+    median = (arr[4]+arr[5])/2;
     count = 0;
   }
 
