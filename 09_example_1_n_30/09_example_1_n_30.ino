@@ -16,10 +16,10 @@ float dist_min, dist_max, dist_raw, median, alpha; // unit: mm
 unsigned long last_sampling_time; // unit: ms
 float scale; // used for pulse duration to distance conversion
 int count;
-int len_arr = 29;
-float arr[29];
+int len_data = 29;
+float data[30], data_sort[30];
 
-void setup() {
+void setup() {  
   // initialize GPIO pins
   pinMode(PIN_LED, OUTPUT);
   pinMode(PIN_TRIG, OUTPUT);
@@ -42,26 +42,34 @@ void setup() {
 }
 
 void loop() {
+  int i,j,temp;
   // wait until next sampling time.
   // millis() returns the number of milliseconds since the program started. Will overflow after 50 days.
   if (millis() < last_sampling_time + INTERVAL) return;
-
   // get a distance reading from the USS
   dist_raw = USS_measure(PIN_TRIG, PIN_ECHO);
-  if (count == len_arr) count = 0;
-  else if (count == len_arr / 2) {
-    median = (arr[14]+arr[15])/2;
+ 
+  if (count == 30){ 
+  for(i=0; i<=28; i++){
+    data[i] = data[i+1];
+    }
+    data[29] = dist_raw;
+   for(i=0; i<=28; i++){
+   data_sort[i] = data[i];
+   }
+   bubble_sorting();
+   median = (data_sort[14]+data_sort[15])/2;  
   }
+ 
 
-
-  // output the read value to the serial port
-  Serial.print("Min:0,");
-  Serial.print("raw:");
-  Serial.print(dist_raw);
-  Serial.print(",");
-  Serial.print("median:");
-  Serial.print(map(median, 0, 400, 100, 500));
-  //  Serial.print(map(dist_ema,0,400,100,500));
+// output the read value to the serial port
+ Serial.print("Min:0,");
+ Serial.print("raw:");
+ Serial.print(dist_raw);
+ Serial.print(",");
+ Serial.print("median:");
+ Serial.print(map(median, 0, 400, 100, 500));
+ //  Serial.print(map(dist_ema,0,400,100,500));
   Serial.print(",");
   Serial.println("Max:500");
 
@@ -77,16 +85,31 @@ void loop() {
   last_sampling_time += INTERVAL;
 }
 
+
 // get a distance reading from USS. return value is in millimeter.
 float USS_measure(int TRIG, int ECHO)
 {
+  int i;
   float reading;
   digitalWrite(TRIG, HIGH);
   delayMicroseconds(10);
   digitalWrite(TRIG, LOW);
   reading = pulseIn(ECHO, HIGH, timeout) * scale;// unit: mm
   if (reading < dist_min || reading > dist_max) reading = 0; // return 0 when out of range.
-  arr[count] = reading;
-  count++;
+  if (count<=29){
+    data[count] = reading;
+    count++;
+  }
   return reading;
+}
+void bubble_sorting(){
+  for(int i=0;i<29;i++){
+    for(int j=0;j<29;j++){
+        if(data_sort[j]>data_sort[j+1]){
+            float temp=data_sort[j];
+            data_sort[j]=data_sort[j+1];
+            data_sort[j+1]=temp;
+            }
+        }
+    }
 }
