@@ -9,7 +9,7 @@
 // configurable parameters
 #define SND_VEL 346.0 // sound velocity at 24 celsius degree (unit: m/s)
 #define INTERVAL 25 // sampling interval (unit: ms)
-#define _DIST_MIN 170 // minimum distance to be measured (unit: mm)
+#define _DIST_MIN 180 // minimum distance to be measured (unit: mm)
 #define _DIST_MAX 360 // maximum distance to be measured (unit: mm)
 #define _ALPHA 0.25
 
