@@ -4,10 +4,10 @@
 // Configurable parameters //
 /////////////////////////////
 #define SEQ_SIZE 8
-float dist_raw2, raw_dist;
+float dist_raw2, raw_dist, real_value;
 // sensor values
-float x[8] = {70.0, 110.0, 150.0, 175.0, 195.0, 215.0, 245.0, 250.0};
- 
+float x[8] = {70.0, 120.0, 155.0, 190.0, 215.0 , 240.0 , 260.0, 290.0};
+  
 // real values
 float y[8] = {100.0, 150.0, 200.0, 250.0, 300.0, 350.0, 400.0, 450.0};
 
@@ -34,24 +34,24 @@ float samples_num = 3;
 #define _DIST_ALPHA 0.3  
 
 // Servo range
-#define _DUTY_MIN 1243   
-#define _DUTY_NEU 1545   
-#define _DUTY_MAX 1752  
+#define _DUTY_MIN 1143 
+#define _DUTY_NEU 1470
+#define _DUTY_MAX 1797 
 
 // Servo speed control
-#define _SERVO_ANGLE 50.0 
-#define _SERVO_SPEED 70.0
+#define _SERVO_ANGLE 65.0 
+#define _SERVO_SPEED 90.0
 
 // Event periods
 #define _INTERVAL_DIST 10
-#define _INTERVAL_SERVO 15
+#define _INTERVAL_SERVO 20
 #define _INTERVAL_SERIAL 20
 
 // PID parameters
-#define _KP 1.25
+#define _KP 1.5
 
-#define a 70
-#define b 245
+//#define a 70
+//#define b 245
 
 //////////////////////
 // global variables //
@@ -84,7 +84,7 @@ float under_noise_filter(void){
     // Delay a short time before taking another reading
     delayMicroseconds(DELAY_MICROS);
   }
-  largestReading = 100 + 300.0 / (b - a) * (largestReading - a);
+  //largestReading = 100 + 300.0 / (b - a) * (largestReading - a);
   return largestReading;
 }
 
@@ -110,6 +110,7 @@ void setup() {
 
   // move servo to neutral position
   myservo.writeMicroseconds(_DUTY_NEU);
+  //while(1){}
   duty_curr = _DUTY_NEU;
 
   // initialize serial port
@@ -120,7 +121,7 @@ void setup() {
   (_SERVO_SPEED / _SERVO_ANGLE) * (_INTERVAL_SERVO / 1000.0);
 } 
 
-void loop() {
+void loop() { 
   /////////////////////
   // Event generator //
   ///////////////////// 
@@ -143,7 +144,7 @@ void loop() {
 
   if(event_dist){
     event_dist = false;
-    dist_ema = filtered_ir_distance();
+    dist_ema = ir_distance_sequence();
     dist_raw2 = ir_distance();
 
     error_curr = dist_ema - _DIST_TARGET;
@@ -153,9 +154,8 @@ void loop() {
     control = _KP* pterm + iterm + dterm;
 
     duty_target = _DUTY_NEU + control * ((control>0)?(_DUTY_MAX-_DUTY_NEU):(_DUTY_NEU-_DUTY_MIN))/(_DUTY_MAX-_DUTY_MIN);
-    if(duty_target > _DUTY_MAX) duty_target = _DUTY_MIN;
-    else if(duty_target < _DUTY_MIN) duty_target = _DUTY_MAX; 
-    
+    //if(250.0< dist_ema) duty_target = _DUTY_NEU+ (control)* ((control>0)?(_DUTY_MAX-_DUTY_NEU):(_DUTY_NEU-_DUTY_MIN))/(_DUTY_MAX-_DUTY_MIN)-30;
+    //if(250.0<=dist_ema && dist_ema < 260.0) duty_target = _DUTY_NEU + (1.0 * pterm) *((control>0)?(_DUTY_MAX-_DUTY_NEU):(_DUTY_NEU-_DUTY_MIN))/(_DUTY_MAX-_DUTY_MIN);
   }
   
   if(event_servo){
@@ -174,7 +174,7 @@ void loop() {
       
   if(event_serial) {
     event_serial = false;
-     
+    
     Serial.print("dist_ir:");
     Serial.print(dist_ema);
     Serial.print(",pterm:");
@@ -183,10 +183,9 @@ void loop() {
     Serial.print(map(duty_target,1000,2000,410,510));
     Serial.print(",duty_curr:");
     Serial.print(map(duty_curr,1000,2000,410,510));
-    Serial.println(",Min:100,Low:200,dist_target:255,High:310,Max:410");
-    
-    //Serial.print("No_filtered:");
-    //Serial.println(ir_distance());
+    Serial.print(",Min:100,Low:200,dist_target:255,High:310,Max:410");
+    Serial.print("No_filtered:");
+    Serial.println(ir_distance());
   }
 }
 
@@ -206,19 +205,16 @@ float ir_distance_filtered(void){
 
 
 float ir_distance_sequence(void){
-  float value, real_value;
-  float volt = float(analogRead(PIN_IR));
-  value = ((6762.0/(volt-9.0))-4.0) * 10.0;
- 
+  float value = filtered_ir_distance();
   int s = 0, e = SEQ_SIZE - 1, m;
   // binary search
-  while(s <= e){
+  while(s <= e){M
     m = (s + e) / 2;
     if(value < x[m]){
-         s = m + 1;
+         e = m - 1;
     }
     else if(value > x[m+1]){
-      e = m - 1;
+      s = m + 1;
     }
     else{
       break;
@@ -232,7 +228,7 @@ float ir_distance_sequence(void){
 
 
   // calculate real values
-  real_value = (y[m+1] - y[m]) / (x[m+1] - x[m] ) * (value - x[m]) + y[m];
+    real_value = (y[m+1] - y[m]) / (x[m+1] - x[m] ) * (value - x[m]) + y[m];
   return real_value;
 }
 
