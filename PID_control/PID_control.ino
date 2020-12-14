@@ -1,4 +1,4 @@
-#include <Servo.h> 
+ #include <Servo.h> 
 
 /////////////////////////////
 // Configurable parameters //
@@ -6,14 +6,14 @@
 #define SEQ_SIZE 8
 float dist_raw2, raw_dist, real_value;
 // sensor values
-float x[8] = {70.0, 120.0, 165.0, 210.0, 255.0 , 270.0 , 290.0, 300.0};
+float x[8] = {75.0, 115.0, 155.0, 185.0, 215.0 , 240.0 , 265.0, 285.0};
   
 // real values
 float y[8] = {100.0, 150.0, 200.0, 250.0, 300.0, 350.0, 400.0, 450.0};
 
 ////////////////////////////
 #define DELAY_MICROS  1500
-#define EMA_ALPHA 0.35
+#define EMA_ALPHA 0.4
 float filtered_dist;
 float ema_dist = 0;
 float samples_num = 3;
@@ -31,24 +31,25 @@ float samples_num = 3;
 #define _DIST_MAX 410 
 
 // Distance sensor
-#define _DIST_ALPHA 0.3  
+#define _DIST_ALPHA 0.35  
 
 // Servo range
-#define _DUTY_MIN 1070
+#define _DUTY_MIN 870
 #define _DUTY_NEU 1470
-#define _DUTY_MAX 1770
+#define _DUTY_MAX 2070
 // Servo speed control
 #define _SERVO_ANGLE 70.0 
-#define _SERVO_SPEED 150.0
+#define _SERVO_SPEED 200.0
 
 // Event periods
 #define _INTERVAL_DIST 20
 #define _INTERVAL_SERVO 20
-#define _INTERVAL_SERIAL 20
+#define _INTERVAL_SERIAL 100
 
 // PID parameters
-#define _KP 2
-#define _KD 65.0  //1.8,47
+#define _KP 2.0
+#define _KD 163  //1.8,47
+#define _KI 0.015
 //#define a 70
 //#define b 245
 
@@ -60,7 +61,7 @@ float samples_num = 3;
 Servo myservo;
 
 // Distance sensor
-float dist_target; 
+float dist_target = 255; 
 float dist_raw, dist_ema; 
 
 // Event periods
@@ -108,7 +109,19 @@ void setup() {
   // initialize global variables
 
   // move servo to neutral position
+  myservo.writeMicroseconds(_DUTY_NEU);
+  /*
+  while(1){
+  myservo.writeMicroseconds(_DUTY_NEU);
+  delay(2000);
   myservo.writeMicroseconds(_DUTY_MAX);
+  delay(2000);
+  myservo.writeMicroseconds(_DUTY_NEU);
+  delay(2000);
+  myservo.writeMicroseconds(_DUTY_MIN);
+  delay(2000);
+  }
+  */
   
   duty_curr = _DUTY_NEU;
 
@@ -118,6 +131,8 @@ void setup() {
   // convert angle speed into duty change per interval.
   duty_chg_per_interval = (_DUTY_MAX - _DUTY_MIN) * 
   (_SERVO_SPEED / _SERVO_ANGLE) * (_INTERVAL_SERVO / 1000.0);
+
+  iterm = 0;
 } 
 
 void loop() { 
@@ -148,7 +163,7 @@ void loop() {
 
     error_curr = _DIST_TARGET - dist_ema ;
     pterm = _KP * error_curr;
-    iterm = 0;
+    iterm += _KI * error_curr;
     dterm = _KD * ( error_curr - error_prev );
     control = pterm + iterm + dterm;
     
@@ -177,26 +192,28 @@ void loop() {
   if(event_serial) {
     event_serial = false;
     
-    Serial.print("dist_ir:");
+    Serial.print("IR:");
     Serial.print(dist_ema);
-    Serial.print(",pterm:");
-    Serial.print(map(pterm,-1000,1000,  510,610));
-    Serial.print(",dterm:");
-    Serial.print(map(dterm,-1000,1000,510,610));
-    /*
-    Serial.print(",error_curr:");
-    Serial.print(error_curr);
-    Serial.print("error_prev:,");
-    Serial.println(error_prev);  
-    */
-    Serial.print(",duty_target:");
-    Serial.print(map(duty_target,1000,2000,410,510));
-    Serial.print(",duty_curr:");
-    Serial.print(map(duty_curr,1000,2000,410,510));
-    Serial.print(",Min:100,Low:200,dist_target:255,High:310,Max:410");
+    //Serial.print("no_filtered");
+    //Serial.println(dist_raw2);
     
-    Serial.print("No_filtered:");
-    Serial.println(ir_distance());
+    Serial.print(",T:");
+    Serial.print(_DIST_TARGET);
+    Serial.print(",P:");
+    Serial.print(map(pterm,-1000,1000,510,610));
+    Serial.print(",D:");
+    Serial.print(map(dterm,-1000,1000,510,610));
+    Serial.print(",I:");
+    Serial.print(map(iterm, -1000,1000,510,610));
+    Serial.print(",DTT:");
+    Serial.print(map(duty_target,1000,2000,410,510));
+    Serial.print(",DTC:");
+    Serial.print(map(duty_curr,1000,2000,410,510));
+    Serial.println(",-G:245,+G:265,m:0,M:800");
+    
+    //Serial.print(",No_Filtered:");
+    //Serial.println(ir_distance());
+
   }
 }
 
