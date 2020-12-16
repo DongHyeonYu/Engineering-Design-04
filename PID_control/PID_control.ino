@@ -164,7 +164,7 @@ void loop() {
     error_prev = error_curr;
   }
   
-  //서보 구동 함수 
+  //서보 구동 함수 (dcpi적용을 통해 서보 속도 제어)
   if(event_servo){
     event_servo = false;
     if(duty_target > duty_curr){
