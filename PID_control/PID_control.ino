@@ -44,8 +44,8 @@ float samples_num = 3; //필터링을 위한 샘플링에 사용할 갯수
 #define _INTERVAL_SERIAL 100 //Serial 출력 INTERVAL
 
 // PID parameters
-#define _KP 1.9 //비례 제어 상수
-#define _KD 85  //미분 제어 상수
+#define _KP 1.5 //비례 제어 상수
+#define _KD 95  //미분 제어 상수
 #define _KI 0.01 //적분 제어 상수
 
 //////////////////////
